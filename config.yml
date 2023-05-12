@@ -1,0 +1,10 @@
+recipe: default.v1
+
+language: es
+
+pipeline:
+- name: nlu.classifiers.mono_intent.MonoIntentClassifier
+
+policies:
+- name: RulePolicy
+  enable_fallback_prediction: false
