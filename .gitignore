@@ -1,5 +1,6 @@
 __pycache__
 .venv
+.src.egg-info
 
 .rasa
 
