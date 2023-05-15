@@ -14,6 +14,7 @@ class ActionUnderConstruction(Action):
         tracker: Tracker,
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
-        dispatcher.utter_message(response="utter_action_under_construction")
+        user_message = tracker.latest_message.get("text")
+        dispatcher.utter_message(text=user_message)
 
         return []

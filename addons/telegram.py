@@ -1,5 +1,9 @@
-import logging
 from copy import deepcopy
+from dotenv import load_dotenv
+import logging
+import os
+from typing import Dict, Text, Any, List, Optional, Callable, Awaitable
+
 from sanic import Blueprint, response
 from sanic.request import Request
 from sanic.response import HTTPResponse
@@ -13,21 +17,26 @@ from telebot.types import (
     ReplyKeyboardMarkup,
     Message,
 )
-from typing import Dict, Text, Any, List, Optional, Callable, Awaitable
-
 from rasa.core.channels.channel import InputChannel, UserMessage, OutputChannel
 from rasa.shared.constants import INTENT_MESSAGE_PREFIX
 from rasa.shared.core.constants import USER_INTENT_RESTART
 from rasa.shared.exceptions import RasaException
 
+from addons.transcriptor import VoiceToText
+
+load_dotenv()
+access_token = os.environ.get("TELEGRAM_ACCESS_TOKEN")
+openai_api_key = os.environ.get("OPENAI_API_KEY")
+#
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+voice_to_text = VoiceToText(access_token, openai_api_key)
 
 
 class TelegramOutput(TeleBot, OutputChannel):
     """Output channel for Telegram."""
 
-    # skipcq: PYL-W0236
     @classmethod
     def name(cls) -> Text:
         return "telegram"
@@ -150,6 +159,8 @@ class TelegramInput(InputChannel):
         if not credentials:
             cls.raise_missing_credentials_exception()
 
+            cls.raise_missing_credentials_exception()
+
         return cls(
             credentials.get("access_token"),
             credentials.get("verify"),
@@ -221,7 +232,12 @@ class TelegramInput(InputChannel):
                     text = update.edited_message.text
                 else:
                     msg = update.message
-                    print(msg)
+                    if msg.content_type == "voice":
+                        transcription = voice_to_text.speech_recognition(
+                            msg.voice.file_id
+                        )
+                        print(transcription)
+                        msg.text = transcription
                     if self._is_user_message(msg):
                         text = msg.text.replace("/bot", "")
                     elif self._is_location(msg):

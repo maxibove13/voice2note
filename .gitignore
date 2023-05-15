@@ -1,7 +1,11 @@
 __pycache__
 .venv
-.src.egg-info
+src.egg-info
 
 .rasa
+credentials.yml
 
 .env
+
+*ogg
+*wav
