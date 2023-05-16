@@ -12,7 +12,7 @@ logger.setLevel(logging.DEBUG)
 class VoiceToText:
     def __init__(self, bot_token, openai_api_key):
         self.bot_token = bot_token
-        self.api_key = openai_api_key
+        self.api_key = str(openai_api_key)
 
     def _download_file_from_telegram(self, file_id):
         logger.debug(f"Downloading file {file_id} from Telegram")
@@ -27,16 +27,24 @@ class VoiceToText:
         with open("voice.ogg", "wb") as file:
             file.write(file_data)
 
-        sound = AudioSegment.from_ogg("voice.ogg")
-        sound.export("voice.wav", format="wav")
+        try:
+            sound = AudioSegment.from_ogg("voice.ogg")
+            sound.export("voice.wav", format="wav")
+            success = True
+        except:
+            success = True
+
+        return success
 
     def speech_recognition(self, file_id):
         # Download the voice file from Telegram
-        self._download_file_from_telegram(file_id)
+        success = self._download_file_from_telegram(file_id)
 
         # Transcribe the audio file using OpenAI's Whisper ASR API
-        openai.api_key = self.api_key
-        with open("voice.wav", "rb") as audio_file:
-            result = openai.Audio.transcribe("whisper-1", audio_file)
-
-        return result["text"]
+        if success:
+            openai.api_key = self.api_key
+            with open("voice.wav", "rb") as audio_file:
+                result = openai.Audio.transcribe("whisper-1", audio_file)
+            return result["text"]
+        else:
+            return "Lo siento, no entendí tu audio, puedes repetirlo por favor?"
